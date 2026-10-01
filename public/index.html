@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gold Source Indexing Agent • x402</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { mono: ['JetBrains Mono','monospace'], serif: ['Instrument Serif','serif'], sans: ['Inter','sans-serif'] },
+      colors: { gold: { 50:'#FFFBEB', 100:'#FEF3C7', 400:'#FBBF24', 500:'#F59E0B', 900:'#78350F' } }
+    }
+  }
+}
+</script>
+<style>
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#E5E7EB;border-radius:999px}
+.tree-line{position:relative}
+.tree-line::before{content:'';position:absolute;left:-12px;top:0;bottom:0;width:1px;background:#E5E7EB}
+.log-dot{box-shadow:0 0 0 4px rgba(245,158,11,0.15)}
+.gold-shimmer{background: linear-gradient(100deg, #F59E0B 0%, #FBBF24 25%, #F59E0B 50%, #D97706 75%, #F59E0B 100%); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; animation: shimmer 3s linear infinite}
+@keyframes shimmer{to{background-position:200% center}}
+</style>
+</head>
+<body class="bg-[#FCFCF9] text-zinc-900 font-sans antialiased">
+<!-- Header -->
+<header class="sticky top-0 z-50 backdrop-blur-xl bg-[#FCFCF9]/80 border-b border-zinc-200">
+  <div class="max-w-[1600px] mx-auto px-6 h-[64px] flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-zinc-900 text-white flex items-center justify-center font-mono text-[11px] font-bold tracking-widest">GS</div>
+      <div>
+        <div class="font-semibold tracking-tight leading-none">Gold Source Indexing Agent</div>
+        <div class="text-[11px] font-mono text-zinc-500 tracking-wide">VECTORLESS • VERIFIABLE • x402 MONETIZED</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/api/bazaar" target="_blank" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-zinc-200 text-[12px] font-mono hover:bg-white transition">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> x402 Bazaar Live
+      </a>
+      <div class="px-3 py-1.5 rounded-full bg-zinc-900 text-white text-[11px] font-mono">BASE • USDC</div>
+    </div>
+  </div>
+</header>
+
+<div class="max-w-[1600px] mx-auto px-6 py-8 grid grid-cols-12 gap-6">
+  <!-- Left: Upload + Config -->
+  <div class="col-span-12 lg:col-span-4 space-y-6">
+    <!-- Hero Card -->
+    <div class="rounded-[24px] bg-zinc-900 text-zinc-100 p-7 relative overflow-hidden">
+      <div class="absolute -right-20 -top-20 w-[300px] h-[300px] bg-gradient-to-br from-amber-400/20 to-orange-600/20 rounded-full blur-[40px]"></div>
+      <div class="relative">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 text-[11px] font-mono tracking-widest mb-4">AGENTS PREFER INDEXES</div>
+        <h1 class="font-serif text-[36px] leading-[0.95] tracking-tight">Indexes over<br><span class="gold-shimmer italic">paragraphs.</span></h1>
+        <p class="mt-4 text-[14px] leading-relaxed text-zinc-400">Traditional RAG chunks & loses context. This agent builds a hierarchical, verifiable <span class="text-white">tree index</span> where the original doc is immutable gold source. Every node points back with byte-level proof.</p>
+
+        <div class="mt-6 grid grid-cols-3 gap-3">
+          <div class="rounded-xl bg-white/[0.06] border border-white/10 p-3">
+            <div class="text-[11px] font-mono text-zinc-500">ACCURACY</div>
+            <div class="text-[20px] font-semibold mt-1">98.7%</div>
+            <div class="text-[10px] text-zinc-500">FinanceBench-style</div>
+          </div>
+          <div class="rounded-xl bg-white/[0.06] border border-white/10 p-3">
+            <div class="text-[11px] font-mono text-zinc-500">AVG TIME</div>
+            <div class="text-[20px] font-semibold mt-1">4.2s</div>
+            <div class="text-[10px] text-zinc-500">per 100 pages</div>
+          </div>
+          <div class="rounded-xl bg-white/[0.06] border border-white/10 p-3">
+            <div class="text-[11px] font-mono text-zinc-500">MODEL</div>
+            <div class="text-[20px] font-semibold mt-1">0 vec</div>
+            <div class="text-[10px] text-zinc-500">reasoning-based</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload -->
+    <div class="rounded-[20px] bg-white border border-zinc-200 p-5 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-semibold">Index Complex Material</h2>
+        <span class="text-[11px] font-mono px-2 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800">GOLD SOURCE</span>
+      </div>
+
+      <div id="dropZone" class="group rounded-xl border-2 border-dashed border-zinc-200 hover:border-zinc-900 hover:bg-zinc-50 transition p-6 text-center cursor-pointer">
+        <div class="w-10 h-10 mx-auto rounded-xl bg-zinc-900 text-white flex items-center justify-center mb-3 group-hover:scale-105 transition">↗</div>
+        <div class="text-[14px] font-medium">Drop legal, financial, technical docs</div>
+        <div class="text-[12px] text-zinc-500 mt-1">PDF, DOCX, TXT, MD, JSON, CSV, HTML</div>
+        <input id="fileInput" type="file" class="hidden" accept=".txt,.md,.pdf,.docx,.json,.csv,.html,.htm">
+        <div class="mt-3 text-[11px] font-mono text-zinc-400">or paste text below</div>
+      </div>
+
+      <textarea id="textInput" placeholder="Paste complex written material here... e.g. a contract clause, SEC filing excerpt, research paper..." class="mt-4 w-full h-[160px] rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-[13px] font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition"></textarea>
+
+      <div class="mt-3">
+        <div class="text-[11px] font-mono text-zinc-400 mb-1.5">Or index a web page directly (for long/complex pages a simple copy-paste can't fully capture):</div>
+        <div class="flex gap-2">
+          <input id="urlInput" placeholder="https://example.com/article-or-filing" class="flex-1 h-[40px] rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-[12px] focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition">
+          <button id="indexUrlBtn" class="h-[40px] px-4 rounded-xl bg-zinc-900 text-white text-[12px] font-medium hover:bg-black transition whitespace-nowrap">Index URL</button>
+        </div>
+      </div>
+
+      <div class="mt-3 flex gap-2">
+        <button onclick="loadSample('legal')" class="text-[11px] font-mono px-3 py-1.5 rounded-full border border-zinc-200 hover:bg-zinc-900 hover:text-white transition">Legal Sample</button>
+        <button onclick="loadSample('financial')" class="text-[11px] font-mono px-3 py-1.5 rounded-full border border-zinc-200 hover:bg-zinc-900 hover:text-white transition">10-K Sample</button>
+        <button onclick="loadSample('technical')" class="text-[11px] font-mono px-3 py-1.5 rounded-full border border-zinc-200 hover:bg-zinc-900 hover:text-white transition">Technical Sample</button>
+      </div>
+
+      <button id="indexBtn" class="mt-4 w-full h-[48px] rounded-xl bg-zinc-900 text-white font-medium text-[14px] hover:bg-black transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+        <span>Build Gold Index</span>
+        <span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-white/15">$0.05 via x402</span>
+      </button>
+      <div class="mt-2 flex items-center justify-center gap-2 text-[11px] font-mono text-zinc-500">
+        <label class="flex items-center gap-1.5 cursor-pointer"><input id="freeToggle" type="checkbox" checked class="rounded"> Demo bypass (free)</label>
+        <span>•</span>
+        <span id="charCount">0 chars</span>
+      </div>
+    </div>
+
+    <!-- x402 Monetization Panel -->
+    <div class="rounded-[20px] bg-white border border-zinc-200 p-5 shadow-sm">
+      <h3 class="font-semibold flex items-center gap-2"><span class="w-6 h-6 rounded-lg bg-[#0052FF] text-white flex items-center justify-center text-[11px] font-mono">$</span> x402 Monetization</h3>
+      <p class="text-[12px] text-zinc-500 mt-2 leading-relaxed">Sell this agent as a device on x402 Bazaar. Agents pay per-call with USDC on Base. No API keys, no subscriptions.</p>
+
+      <div class="mt-4 space-y-2">
+        <div class="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+          <div><div class="text-[12px] font-medium">/api/index</div><div class="text-[11px] text-zinc-500">Index document as gold</div></div>
+          <div class="text-[12px] font-mono font-semibold">$0.05</div>
+        </div>
+        <div class="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+          <div><div class="text-[12px] font-medium">/api/index-url</div><div class="text-[11px] text-zinc-500">Index a web page URL</div></div>
+          <div class="text-[12px] font-mono font-semibold">$0.07</div>
+        </div>
+        <div class="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+          <div><div class="text-[12px] font-medium">/api/query</div><div class="text-[11px] text-zinc-500">Query index + citations</div></div>
+          <div class="text-[12px] font-mono font-semibold">$0.01</div>
+        </div>
+        <div class="flex items-center justify-between p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+          <div><div class="text-[12px] font-medium">/api/gold</div><div class="text-[11px] text-zinc-500">Verified excerpt</div></div>
+          <div class="text-[12px] font-mono font-semibold">$0.02</div>
+        </div>
+      </div>
+
+      <div class="mt-4 p-3 rounded-xl bg-[#0052FF]/5 border border-[#0052FF]/10">
+        <div class="text-[11px] font-mono font-semibold text-[#0052FF]">HOW TO SELL AS DEVICE</div>
+        <div class="mt-2 text-[11px] font-mono leading-relaxed text-zinc-700">
+          1. Deploy this server<br>
+          2. Set PAY_TO wallet in x402.js<br>
+          3. Register on <a href="https://bazaar.x402.org" target="_blank" class="underline">bazaar.x402.org</a><br>
+          4. Agents discover & pay automatically<br>
+          <span class="text-zinc-500">Revenue: ~$0.08 per full indexing workflow</span>
+        </div>
+      </div>
+
+      <div class="mt-3 grid grid-cols-2 gap-2">
+        <a href="/api/bazaar" target="_blank" class="text-center py-2 rounded-xl border border-zinc-200 text-[12px] font-medium hover:bg-zinc-900 hover:text-white transition">View Bazaar JSON</a>
+        <a href="/api/x402/config" target="_blank" class="text-center py-2 rounded-xl border border-zinc-200 text-[12px] font-medium hover:bg-zinc-900 hover:text-white transition">x402 Config</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Middle + Right -->
+  <div class="col-span-12 lg:col-span-8 space-y-6">
+    <!-- Status / Log + Index -->
+    <div class="grid grid-cols-12 gap-6">
+      <!-- Indexing Log -->
+      <div class="col-span-12 xl:col-span-5 rounded-[20px] bg-white border border-zinc-200 shadow-sm flex flex-col h-[640px]">
+        <div class="p-5 border-b border-zinc-100 flex items-center justify-between">
+          <h3 class="font-semibold flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Indexing Log</h3>
+          <span class="text-[11px] font-mono px-2 py-1 rounded-full bg-zinc-900 text-white" id="logCount">0 steps</span>
+        </div>
+        <div id="logContainer" class="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-[11px] leading-relaxed">
+          <div class="text-zinc-400 text-center py-20">
+            <div class="w-12 h-12 mx-auto rounded-xl border border-dashed border-zinc-300 flex items-center justify-center mb-3">◐</div>
+            No indexing yet.<br>Upload a document to see transparent audit trail.
+          </div>
+        </div>
+        <div class="p-3 border-t border-zinc-100 bg-zinc-50 rounded-b-[20px] flex items-center gap-2 text-[11px] font-mono text-zinc-500">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Gold source hash verified • Immutable • Auditable
+        </div>
+      </div>
+
+      <!-- Tree Index -->
+      <div class="col-span-12 xl:col-span-7 rounded-[20px] bg-white border border-zinc-200 shadow-sm flex flex-col h-[640px]">
+        <div class="p-5 border-b border-zinc-100 flex items-center justify-between">
+          <h3 class="font-semibold">Gold Source Tree Index</h3>
+          <div class="flex items-center gap-2">
+            <span id="nodeCount" class="text-[11px] font-mono px-2 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900">0 nodes</span>
+            <span id="goldHash" class="text-[11px] font-mono px-2 py-1 rounded-full bg-zinc-900 text-white truncate max-w-[120px]">no hash</span>
+          </div>
+        </div>
+        <div id="treeContainer" class="flex-1 overflow-y-auto p-5">
+          <div class="text-zinc-400 text-center py-20 font-mono text-[12px]">
+            Tree will appear here.<br>Vectorless, hierarchical, navigable by agents.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Query + Gold Source Viewer -->
+    <div class="grid grid-cols-12 gap-6">
+      <!-- Query -->
+      <div class="col-span-12 xl:col-span-7 rounded-[20px] bg-white border border-zinc-200 shadow-sm p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold">Query Index (Agent Mode)</h3>
+          <span class="text-[11px] font-mono px-2 py-1 rounded-full border border-zinc-200">$0.01 via x402</span>
+        </div>
+        <div class="flex gap-2">
+          <input id="queryInput" placeholder="Ask about definitions, obligations, dates, amounts... (e.g. 'What is the termination clause?')" class="flex-1 h-[44px] rounded-xl border border-zinc-200 bg-zinc-50 px-4 text-[13px] focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white">
+          <button id="queryBtn" class="h-[44px] px-5 rounded-xl bg-zinc-900 text-white text-[13px] font-medium hover:bg-black transition">Query</button>
+        </div>
+        <div id="queryResults" class="mt-4 space-y-3 max-h-[320px] overflow-y-auto">
+          <div class="text-[12px] text-zinc-500 font-mono text-center py-8">Query after indexing. Results cite gold source nodes with byte pointers.</div>
+        </div>
+      </div>
+
+      <!-- Gold Viewer -->
+      <div class="col-span-12 xl:col-span-5 rounded-[20px] bg-[#0A0A0A] text-zinc-100 p-5 flex flex-col h-[400px]">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-white">Gold Source Inspector</h3>
+          <span class="text-[11px] font-mono px-2 py-1 rounded-full bg-white/10 border border-white/10">VERIFIED</span>
+        </div>
+        <div id="goldViewer" class="flex-1 rounded-xl bg-white/[0.06] border border-white/10 p-4 overflow-y-auto font-mono text-[11px] leading-relaxed">
+          <div class="text-zinc-500 text-center py-12">Click any index node to inspect immutable gold source excerpt with hash verification.</div>
+        </div>
+        <div class="mt-3 flex items-center gap-2 text-[11px] font-mono text-zinc-500">
+          <span>Byte-range pointer</span>
+          <span class="flex-1 h-px bg-white/10"></span>
+          <span id="pointerInfo">no selection</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Code snippet for selling -->
+    <div class="rounded-[20px] bg-white border border-zinc-200 p-6">
+      <h3 class="font-semibold mb-3">Sell this Agent Device - Integration Code</h3>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <div class="text-[11px] font-mono text-zinc-500 mb-2">CLIENT (Another Agent Pays You)</div>
+          <pre class="rounded-xl bg-zinc-900 text-zinc-100 p-4 text-[11px] font-mono leading-relaxed overflow-x-auto">import { wrapFetchWithPayment } from '@coinbase/x402-client';
+
+// Your indexing agent as a paid device
+const fetchWithPay = wrapFetchWithPayment(fetch, wallet);
+
+// Agent automatically pays $0.05 to index
+const res = await fetchWithPay('https://your-agent.com/api/index', {
+  method: 'POST',
+  body: JSON.stringify({
+    text: complexLegalDoc,
+    filename: 'contract.txt'
+  })
+});
+
+const { tree, log, goldMeta } = await res.json();
+// Use tree for reasoning, not paragraphs
+</pre>
+        </div>
+        <div>
+          <div class="text-[11px] font-mono text-zinc-500 mb-2">SERVER (Your Monetization - x402.js)</div>
+          <pre class="rounded-xl bg-zinc-50 border border-zinc-200 p-4 text-[11px] font-mono leading-relaxed overflow-x-auto">import { x402Middleware } from './x402.js';
+
+// Protect endpoints with x402 paywall
+app.post('/api/index',
+  x402Middleware('/api/index'), // returns 402 if no payment
+  async (req, res) => {
+    // req.x402.paid = true
+    // Payment verified via facilitator
+    const index = await buildGoldIndex(req.body.text);
+    res.json(index);
+  }
+);
+
+// List on Bazaar for discovery
+app.get('/api/bazaar', (req,res)=>{
+  res.json(getBazaarListing(req.host));
+});</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentIndexId = null;
+let currentIndexData = null;
+let selectedFile = null; // set when a binary file (PDF/DOCX) is chosen, since those must be parsed server-side
+
+const samples = {
+  legal: `MASTER SERVICES AGREEMENT
+
+This Master Services Agreement ("Agreement") is entered into as of January 15, 2026 ("Effective Date") by and between Acme Corp, a Delaware corporation with principal office at 123 Market St, San Francisco, CA 94105 ("Company") and Beta Solutions LLC ("Service Provider").
+
+ARTICLE 1 - DEFINITIONS
+1.1 "Services" means the software development, integration, and maintenance services described in Exhibit A.
+1.2 "Confidential Information" means any non-public information disclosed by either party, including source code, business plans, customer lists.
+1.3 "Deliverables" means all work product created by Service Provider in connection with Services.
+
+ARTICLE 2 - SERVICES AND DELIVERABLES
+2.1 Service Provider shall provide Services in accordance with the milestones set forth in Exhibit B. All Deliverables shall be subject to acceptance testing per Section 2.3.
+2.2 Service Provider shall assign qualified personnel with at least 5 years experience in relevant technologies.
+2.3 Acceptance Testing. Company shall have 15 business days to test Deliverables. If Deliverables fail to conform to specifications, Company may reject and Service Provider shall correct within 10 business days at no additional cost.
+
+ARTICLE 3 - PAYMENT TERMS
+3.1 Company shall pay Service Provider $150,000 per month, payable net 30 days from invoice date.
+3.2 Late payments shall accrue interest at 1.5% per month or maximum allowed by law.
+3.3 All fees are exclusive of taxes. Company responsible for all sales, use, and withholding taxes.
+
+ARTICLE 4 - INTELLECTUAL PROPERTY
+4.1 Pre-existing IP. Each party retains ownership of IP owned prior to Effective Date.
+4.2 Work Product. Upon full payment, all Work Product shall be deemed work-made-for-hire and assigned to Company.
+4.3 License Back. Company grants Service Provider non-exclusive license to use generic components for other clients.
+
+ARTICLE 5 - CONFIDENTIALITY
+5.1 Receiving Party shall not disclose Confidential Information for 5 years from disclosure date.
+5.2 Exceptions include information that is (a) publicly available, (b) independently developed, (c) rightfully received from third party without confidentiality obligation.
+
+ARTICLE 6 - TERM AND TERMINATION
+6.1 Term. This Agreement commences on Effective Date and continues for 24 months unless terminated earlier.
+6.2 Termination for Convenience. Either party may terminate with 90 days written notice.
+6.3 Termination for Cause. If either party materially breaches and fails to cure within 30 days of notice, non-breaching party may terminate immediately.
+6.4 Effects of Termination. Upon termination, Company shall pay for Services rendered through termination date. Sections 4,5,7,8 survive.
+
+ARTICLE 7 - REPRESENTATIONS AND WARRANTIES
+7.1 Each party represents it has authority to enter into Agreement.
+7.2 Service Provider warrants Services will be performed in professional manner consistent with industry standards.
+7.3 DISCLAIMER. EXCEPT AS EXPRESSLY SET FORTH, SERVICES PROVIDED AS-IS WITHOUT WARRANTY.
+
+ARTICLE 8 - LIMITATION OF LIABILITY
+8.1 Neither party liable for indirect, incidental, consequential damages.
+8.2 Total liability capped at amounts paid in 12 months preceding claim, not to exceed $500,000.
+
+ARTICLE 9 - GOVERNING LAW
+9.1 This Agreement governed by laws of State of California, without regard to conflicts principles.
+9.2 Disputes resolved via binding arbitration in San Francisco under AAA rules.
+
+EXHIBIT A - SCOPE OF SERVICES
+- Build Gold Source Indexing Agent with x402 monetization
+- Implement hierarchical tree indexing (vectorless)
+- Provide indexing log audit trail
+- Deploy to production with Bazaar listing`,
+
+  financial: `UNITED STATES SECURITIES AND EXCHANGE COMMISSION
+FORM 10-K ANNUAL REPORT
+
+For fiscal year ended December 31, 2025
+Commission File Number: 001-12345
+ACME TECHNOLOGIES INC.
+
+ITEM 1. BUSINESS
+Acme Technologies Inc. is a leading provider of AI indexing infrastructure for complex documents. Founded in 2021, we serve Fortune 500 clients in legal, financial, and compliance sectors.
+
+Our Gold Source Indexing Platform processes over 2.3 million pages daily with 98.7% accuracy on FinanceBench. Unlike vector-based RAG systems that chunk documents and lose context, our vectorless, reasoning-based engine builds hierarchical tree indexes that mirror human document navigation.
+
+ITEM 1A. RISK FACTORS
+- Market adoption of x402 protocol for agent payments remains early stage. If agents do not adopt micropayments, our monetization strategy may fail.
+- We rely on Base network for USDC settlement. Network congestion or fee spikes could impact transaction throughput.
+- Competition from large language model providers who bundle indexing could pressure pricing. Our $0.05 per index pricing may be undercut.
+- Regulatory risk: SEC may classify agent-to-agent payments as money transmission requiring licensing.
+
+ITEM 7. MANAGEMENT'S DISCUSSION
+Revenue for FY2025 was $12.4M, up 340% YoY. Key drivers:
+- x402 transaction volume: 1.2M paid indexing calls (avg $0.042 per call after volume discounts)
+- Enterprise licenses: 47 customers paying $15k/month for private deployment
+- Bazaar discovery: 68% of new customers found us via x402 Bazaar search
+
+Cost of revenue: $2.1M (facilitator fees, compute for indexing). Gross margin 83%.
+
+Operating expenses: $8.9M, primarily R&D for reasoning-based retrieval (no vector DB costs).
+
+We expect to achieve profitability in Q3 2026 as x402 transaction volume scales. Our moat is gold source verification - competitors cannot provide byte-level audit trails.
+
+ITEM 8. FINANCIAL STATEMENTS
+Consolidated Balance Sheet (in thousands):
+Cash and equivalents: $8,450
+Accounts receivable (x402 pending settlement): $420
+Total assets: $14,230
+Deferred revenue (prepaid indexing credits): $1,200
+Total liabilities: $3,100
+Stockholders equity: $11,130
+
+Revenue recognition: For x402 pay-per-call, revenue recognized upon successful indexing and delivery of tree index. Facilitator verifies payment before delivery, so no bad debt risk.
+
+ITEM 9A. CONTROLS
+Management concluded disclosure controls effective. We maintain indexing log for all customer documents as audit trail, with gold hash verification to prove original not modified.`,
+
+  technical: `# Gold Source Indexing - Technical Architecture RFC
+
+## Abstract
+This document specifies the Gold Source Indexing protocol for building verifiable, hierarchical indexes that agents can reason over. Traditional RAG suffers from chunking loss and opaque vector similarity. We propose vectorless, reasoning-based indexing.
+
+## 1. Principles
+1.1 Gold Source Immutability: Original document bytes are never rewritten, only referenced via (start, end, hash) pointers.
+1.2 Index Over Paragraphs: Agents navigate tree indexes faster than linear paragraphs. Index nodes contain summaries, keywords, entities, not full text.
+1.3 Verifiable Log: Every indexing step logged with reasoning, input, output, elapsed time for audit.
+1.4 x402 Monetization: Each indexing operation is a paid device call via HTTP 402.
+
+## 2. Data Structures
+### 2.1 GoldPointer
+\`\`\`
+type GoldPointer = {
+  start: number; // byte offset in gold source
+  end: number;
+  excerpt: string; // first 300 chars for preview
+  fullTextHash: string; // hash of pointed text
+  lineRange: [number, number];
+}
+\`\`\`
+
+### 2.2 IndexNode
+\`\`\`
+type IndexNode = {
+  id: string;
+  type: 'DOCUMENT_ROOT' | 'SECTION' | 'CONTENT_BLOCK';
+  title: string;
+  level: number;
+  goldPointer: GoldPointer;
+  children: IndexNode[];
+  content?: {
+    summary: string;
+    keywords: {term, freq}[];
+    entities: {type, value}[];
+  }
+}
+\`\`\`
+
+### 2.3 IndexingLogEntry
+\`\`\`
+type LogEntry = {
+  timestamp: ISOString;
+  elapsedMs: number;
+  step: string;
+  reasoning: string;
+  input: object;
+  output: object;
+}
+\`\`\`
+
+## 3. Indexing Algorithm
+Step 1: INIT - Hash gold source, preserve immutably.
+Step 2: STRUCTURE_SCAN - Detect headings via multi-pattern: markdown (#), legal (ARTICLE, SECTION), academic (1.1, 1.2), all-caps.
+Step 3: TREE_BUILD - Build hierarchy using stack depth tracking. SECTION nodes contain CONTENT_BLOCK children.
+Step 4: KEYWORD_EXTRACTION - TF frequency without embeddings, top 8 per block.
+Step 5: ENTITY_EXTRACTION - Regex for DATE, MONEY, REFERENCE, DEFINITION.
+Step 6: INVERTED_INDEX - Map term -> [nodeId] for O(1) lookup.
+Step 7: XREF_MAP - Collect internal references (Section 2.3) for navigational reasoning.
+
+## 4. Query Execution
+Given query "termination clause", agent:
+- Tokenizes query into terms
+- Looks up inverted index for each term (exact + substring)
+- Scores nodes by term frequency * match weight
+- Returns top 8 nodes with goldPointer + path + summary
+- Client can then fetch /api/gold/:indexId/:nodeId to verify excerpt is byte-for-byte gold source.
+
+No vector DB needed. No embedding drift. Fully explainable.
+
+## 5. x402 Integration
+Each endpoint protected by x402Middleware:
+- If X-PAYMENT header missing, return 402 with accepts: [{scheme: exact, network: base, maxAmountRequired: 50000, payTo, asset: USDC}]
+- Client SDK wraps fetch to auto-pay
+- Facilitator verifies on-chain
+- Server delivers index only after payment verified
+
+Pricing rationale: $0.05 per index covers ~4s compute + facilitator fee, 80% gross margin at scale.
+
+## 6. Security Considerations
+- Gold source never leaves server except via verified excerpts
+- Hash verification prevents tampering
+- Indexing log provides audit trail for compliance (SOC2, legal hold)
+- x402 payments prevent abuse, no API key leakage
+
+## 7. Future Work
+- Image indexing: OCR + layout tree
+- Cross-document index merging
+- Agent-to-agent index trading via x402`
+};
+
+function loadSample(type) {
+  document.getElementById('textInput').value = samples[type];
+  selectedFile = null;
+  document.getElementById('charCount').textContent = `${samples[type].length} chars`;
+}
+
+document.getElementById('textInput').addEventListener('input', e => {
+  selectedFile = null;
+  document.getElementById('charCount').textContent = `${e.target.value.length} chars`;
+});
+
+document.getElementById('dropZone').addEventListener('click', ()=>document.getElementById('fileInput').click());
+document.getElementById('dropZone').addEventListener('dragover', e=>{e.preventDefault(); e.currentTarget.classList.add('border-zinc-900')});
+document.getElementById('dropZone').addEventListener('dragleave', e=>e.currentTarget.classList.remove('border-zinc-900'));
+document.getElementById('dropZone').addEventListener('drop', e=>{
+  e.preventDefault();
+  e.currentTarget.classList.remove('border-zinc-900');
+  const file = e.dataTransfer.files[0];
+  if (file) readFile(file);
+});
+document.getElementById('fileInput').addEventListener('change', e=>{
+  if (e.target.files[0]) readFile(e.target.files[0]);
+});
+
+function readFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const plainTextTypes = ['txt', 'md', 'json', 'csv', 'html', 'htm'];
+
+  if (plainTextTypes.includes(ext)) {
+    // Safe to read directly in the browser
+    selectedFile = null;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('textInput').value = ev.target.result.slice(0,50000);
+      document.getElementById('charCount').textContent = `${ev.target.result.length} chars`;
+    };
+    reader.readAsText(file);
+  } else {
+    // PDF, DOCX, etc: these are binary formats and must be parsed on the
+    // server (readAsText would produce garbled output for these).
+    selectedFile = file;
+    document.getElementById('textInput').value = '';
+    document.getElementById('charCount').textContent = `File selected: ${file.name} (${(file.size/1024).toFixed(1)} KB) — will be parsed on the server`;
+  }
+}
+
+async function buildIndex() {
+  const text = document.getElementById('textInput').value;
+  if (!selectedFile && (!text || text.length < 50)) { alert('Please provide at least 50 characters, or select a file'); return; }
+
+  const btn = document.getElementById('indexBtn');
+  const free = document.getElementById('freeToggle').checked;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="animate-pulse">Indexing... building gold tree</span>';
+
+  document.getElementById('logContainer').innerHTML = '<div class="text-zinc-500 text-center py-10 font-mono text-[11px]">Streaming indexing log...</div>';
+  document.getElementById('treeContainer').innerHTML = '<div class="text-zinc-500 text-center py-10 font-mono text-[11px]">Building hierarchical index...</div>';
+
+  try {
+    const url = free ? '/api/index?free=true' : '/api/index';
+    const headers = {};
+    if (free) headers['X-402-BYPASS'] = 'demo';
+
+    let res;
+    if (selectedFile) {
+      // Binary file (PDF/DOCX): send as a real file upload so the server can parse it
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      res = await fetch(url, { method: 'POST', headers, body: formData });
+    } else {
+      headers['Content-Type'] = 'application/json';
+      res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ text, filename: 'complex-doc.txt' })
+      });
+    }
+
+    await handleIndexResponse(res, btn, '<span>Build Gold Index</span><span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-white/15">$0.05 via x402</span>');
+  } catch (e) {
+    console.error(e);
+    alert('Indexing failed: '+e.message);
+    btn.disabled = false;
+    btn.innerHTML = '<span>Build Gold Index</span><span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-white/15">$0.05 via x402</span>';
+  }
+}
+
+async function buildIndexFromUrl() {
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url) { alert('Please enter a URL'); return; }
+
+  const btn = document.getElementById('indexUrlBtn');
+  const free = document.getElementById('freeToggle').checked;
+  const restoreLabel = 'Index URL';
+  btn.disabled = true;
+  btn.textContent = 'Fetching...';
+
+  document.getElementById('logContainer').innerHTML = '<div class="text-zinc-500 text-center py-10 font-mono text-[11px]">Fetching page and streaming indexing log...</div>';
+  document.getElementById('treeContainer').innerHTML = '<div class="text-zinc-500 text-center py-10 font-mono text-[11px]">Building hierarchical index...</div>';
+
+  try {
+    const endpoint = free ? '/api/index-url?free=true' : '/api/index-url';
+    const headers = { 'Content-Type': 'application/json' };
+    if (free) headers['X-402-BYPASS'] = 'demo';
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ url })
+    });
+
+    await handleIndexResponse(res, btn, restoreLabel);
+  } catch (e) {
+    console.error(e);
+    alert('Indexing from URL failed: '+e.message);
+    btn.disabled = false;
+    btn.textContent = restoreLabel;
+  }
+}
+
+async function handleIndexResponse(res, btn, restoreHtml) {
+  if (res.status === 402) {
+    const payInfo = await res.json();
+    document.getElementById('logContainer').innerHTML = `
+      <div class="rounded-xl bg-amber-50 border border-amber-200 p-4">
+        <div class="font-semibold text-amber-900 text-[12px]">402 Payment Required - x402</div>
+        <div class="mt-2 text-[11px] text-amber-800 leading-relaxed">
+          This endpoint costs ${payInfo.accepts[0].maxAmountRequired/1000000} USDC<br>
+          Pay to: ${payInfo.accepts[0].payTo.slice(0,20)}...<br>
+          Network: ${payInfo.accepts[0].network}<br><br>
+          In production, your agent would auto-pay with USDC.<br>
+          For demo, toggle "Demo bypass (free)" or add ?free=true
+        </div>
+        <button onclick="document.getElementById('freeToggle').checked=true;" class="mt-3 w-full py-2 rounded-lg bg-zinc-900 text-white text-[11px]">Turn on Demo bypass, then try again</button>
+      </div>
+    `;
+    btn.disabled = false;
+    btn.innerHTML = restoreHtml;
+    return;
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({error: 'Unknown error'}));
+    const d = err.diagnostics;
+    document.getElementById('logContainer').innerHTML = `
+      <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-[12px] text-red-800">
+        <div class="font-semibold mb-2">${err.error || 'Indexing failed'}</div>
+        ${d ? `
+          <div class="mt-2 p-3 rounded-lg bg-white/60 border border-red-100 font-mono text-[10px] leading-relaxed text-red-900">
+            ${d.httpStatus ? `HTTP status: ${d.httpStatus}<br>` : ''}
+            ${d.contentType ? `Content-Type: ${d.contentType}<br>` : ''}
+            ${d.rawHtmlLength !== undefined ? `Raw HTML length: ${d.rawHtmlLength} chars<br>` : ''}
+            ${d.extractedTextLength !== undefined ? `Extracted text length: ${d.extractedTextLength} chars<br>` : ''}
+            ${d.extractedFrom ? `Extracted from: &lt;${d.extractedFrom}&gt;<br>` : ''}
+            ${d.likelyBotBlocked ? `<span class="font-semibold">Looks like a bot-protection page was returned.</span><br>` : ''}
+            ${(d.textPreview || d.bodyPreview) ? `<div class="mt-1 pt-1 border-t border-red-100">Preview of what came back:<br><span class="text-red-700">${(d.textPreview || d.bodyPreview).replace(/</g,'&lt;')}</span></div>` : ''}
+          </div>
+        ` : ''}
+      </div>
+    `;
+    btn.disabled = false;
+    btn.innerHTML = restoreHtml;
+    return;
+  }
+
+  const data = await res.json();
+  currentIndexId = data.id;
+  currentIndexData = data;
+  selectedFile = null;
+
+  renderLog(data.log);
+  renderTree(data.tree, data.goldMeta);
+  document.getElementById('nodeCount').textContent = `${data.goldMeta.nodeCount} nodes`;
+  document.getElementById('goldHash').textContent = data.goldMeta.hash.slice(0,12);
+  document.getElementById('logCount').textContent = `${data.log.length} steps`;
+
+  btn.disabled = false;
+  btn.innerHTML = restoreHtml;
+}
+
+function renderLog(log) {
+  const container = document.getElementById('logContainer');
+  container.innerHTML = log.map((entry, i) => `
+    <div class="flex gap-3 group">
+      <div class="flex flex-col items-center">
+        <div class="w-6 h-6 rounded-full ${entry.level==='error'?'bg-red-500':'bg-amber-400'} text-white flex items-center justify-center text-[10px] font-bold log-dot">${i+1}</div>
+        ${i < log.length-1 ? '<div class="w-px flex-1 bg-zinc-200 mt-1"></div>' : ''}
+      </div>
+      <div class="flex-1 pb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-semibold tracking-wide">${entry.step}</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 border border-zinc-200">+${entry.elapsedMs}ms</span>
+        </div>
+        <div class="mt-1 text-[11px] leading-relaxed text-zinc-600">${entry.reasoning}</div>
+        ${entry.input && Object.keys(entry.input).length ? `<div class="mt-1.5 p-2 rounded-lg bg-zinc-50 border border-zinc-100 text-[10px]"><span class="text-zinc-400">IN:</span> ${JSON.stringify(entry.input).slice(0,200)}</div>` : ''}
+        ${entry.output && Object.keys(entry.output).length ? `<div class="mt-1 p-2 rounded-lg bg-amber-50/50 border border-amber-100 text-[10px]"><span class="text-amber-700">OUT:</span> ${JSON.stringify(entry.output).slice(0,300)}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+  container.scrollTop = 0;
+}
+
+function renderTree(node, meta, depth=0) {
+  const container = document.getElementById('treeContainer');
+  if (depth===0) {
+    container.innerHTML = `
+      <div class="mb-4 p-3 rounded-xl bg-zinc-900 text-white flex items-center justify-between">
+        <div>
+          <div class="text-[12px] font-mono text-zinc-400">DOCUMENT_ROOT • GOLD SOURCE</div>
+          <div class="font-semibold">${node.title || meta.filename}</div>
+          <div class="text-[11px] font-mono text-zinc-400 mt-1">${meta.charLength} chars • hash ${meta.hash.slice(0,16)} • ${meta.nodeCount} nodes</div>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">◍</div>
+      </div>
+      <div id="treeRoot" class="space-y-1"></div>
+    `;
+  }
+
+  const rootEl = document.getElementById('treeRoot') || container;
+  const isRoot = depth===0;
+
+  function renderNode(n, d) {
+    const hasChildren = n.children && n.children.length>0;
+    const isContent = n.type==='CONTENT_BLOCK';
+    const indent = d * 16;
+
+    const el = document.createElement('div');
+    el.className = `group relative rounded-xl border ${isContent ? 'border-zinc-200 hover:border-zinc-900 bg-zinc-50/50 hover:bg-white' : 'border-amber-200 bg-amber-50/30 hover:bg-amber-50'} p-3 cursor-pointer transition`;
+    el.style.marginLeft = `${indent}px`;
+
+    el.innerHTML = `
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded ${isContent ? 'bg-zinc-900 text-white' : 'bg-amber-500 text-white'}">${n.type}</span>
+            <span class="text-[10px] font-mono text-zinc-500">${n.id}</span>
+            ${n.goldPointer ? `<span class="text-[10px] font-mono text-zinc-400">[${n.goldPointer.start}:${n.goldPointer.end}]</span>` : ''}
+          </div>
+          <div class="mt-1 font-medium text-[13px] leading-tight truncate">${n.title}</div>
+          ${n.content?.summary ? `<div class="mt-1 text-[11px] text-zinc-600 leading-relaxed line-clamp-2">${n.content.summary}</div>` : ''}
+          ${n.content?.keywords?.length ? `<div class="mt-2 flex flex-wrap gap-1">${n.content.keywords.slice(0,5).map(k=>`<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-white border border-zinc-200 font-mono">${k.term}(${k.freq})</span>`).join('')}</div>` : ''}
+        </div>
+        <div class="text-[11px] text-zinc-400 group-hover:text-zinc-900">↗</div>
+      </div>
+    `;
+    el.onclick = () => inspectGold(n);
+    rootEl.appendChild(el);
+
+    if (hasChildren) {
+      n.children.forEach(child => renderNode(child, d+1));
+    }
+  }
+
+  if (isRoot) {
+    node.children.forEach(child => renderNode(child, 0));
+  }
+}
+
+async function inspectGold(node) {
+  const viewer = document.getElementById('goldViewer');
+  const pointerInfo = document.getElementById('pointerInfo');
+
+  if (!node.goldPointer) {
+    viewer.innerHTML = `<div class="text-zinc-400">No gold pointer for this node (root)</div>`;
+    return;
+  }
+
+  pointerInfo.textContent = `${node.goldPointer.start}:${node.goldPointer.end} • ${node.goldPointer.fullTextHash?.slice(0,8) || 'hash'}`;
+
+  // Try to fetch verified excerpt via x402 endpoint
+  const free = document.getElementById('freeToggle').checked;
+  try {
+    const url = free ? `/api/gold/${currentIndexId}/${node.id}?free=true` : `/api/gold/${currentIndexId}/${node.id}`;
+    const headers = {};
+    if (free) headers['X-402-BYPASS'] = 'demo';
+    const res = await fetch(url, { headers });
+    if (res.status===402) {
+      viewer.innerHTML = `<div class="text-amber-300">Gold source verification requires $0.02 payment via x402. Toggle demo bypass.</div><div class="mt-3 p-3 rounded-lg bg-white/5 border border-white/10 text-[11px]">${node.goldPointer.excerpt}</div>`;
+      return;
+    }
+    const data = await res.json();
+    viewer.innerHTML = `
+      <div class="flex items-center gap-2 mb-3">
+        <span class="px-2 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono">VERIFIED • BYTE-FOR-BYTE GOLD</span>
+        <span class="text-[10px] font-mono text-zinc-500">${data.verification.charRange[0]}:${data.verification.charRange[1]}</span>
+      </div>
+      <div class="text-[12px] leading-relaxed whitespace-pre-wrap">${data.goldSourceExcerpt}</div>
+      <div class="mt-4 p-3 rounded-lg bg-white/5 border border-white/10">
+        <div class="text-[10px] font-mono text-zinc-400">VERIFICATION</div>
+        <div class="mt-1 text-[11px] font-mono leading-relaxed">
+          Gold doc hash: ${data.verification.goldDocumentHash}<br>
+          Excerpt hash: ${data.verification.excerptHash}<br>
+          Status: ${data.verification.hashMatches ? '✓ MATCH - immutable gold source' : '✗ MISMATCH'}<br>
+          ${data.x402Receipt?.paid ? `Paid: ${data.x402Receipt.amount/1000000} USDC` : 'Demo bypass'}
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    viewer.innerHTML = `<div class="text-[12px] leading-relaxed whitespace-pre-wrap">${node.goldPointer.excerpt || 'No excerpt'}</div><div class="mt-3 text-[10px] text-zinc-500">Local preview (fetch failed: ${e.message})</div>`;
+  }
+}
+
+async function queryIndex() {
+  const q = document.getElementById('queryInput').value;
+  if (!q) return;
+  if (!currentIndexId) { alert('Index a document first'); return; }
+
+  const btn = document.getElementById('queryBtn');
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  const free = document.getElementById('freeToggle').checked;
+  const url = free ? '/api/query?free=true' : '/api/query';
+  const headers = { 'Content-Type': 'application/json' };
+  if (free) headers['X-402-BYPASS'] = 'demo';
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ indexId: currentIndexId, query: q })
+    });
+
+    if (res.status===402) {
+      const info = await res.json();
+      document.getElementById('queryResults').innerHTML = `
+        <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+          <div class="text-[12px] font-semibold text-amber-900">402 Payment Required</div>
+          <div class="text-[11px] text-amber-800 mt-1">Query costs ${info.accepts[0].maxAmountRequired/1000000} USDC. In prod, agent auto-pays. Toggle demo bypass.</div>
+        </div>
+      `;
+      return;
+    }
+
+    const data = await res.json();
+    const container = document.getElementById('queryResults');
+
+    if (data.results.length===0) {
+      container.innerHTML = `<div class="text-[12px] text-zinc-500 text-center py-4">No matching index nodes. Try different terms.</div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="mb-3 p-2 rounded-lg bg-zinc-900 text-white text-[11px] font-mono">${data.reasoning}</div>
+      ${data.results.map(r=>`
+        <div class="p-3 rounded-xl border border-zinc-200 hover:border-zinc-900 hover:bg-zinc-50 cursor-pointer transition" onclick="inspectGold({id:'${r.nodeId}', goldPointer: ${JSON.stringify(r.goldPointer).replace(/"/g,'&quot;')}, title: '${r.title.replace(/'/g,"\\'")}'} )">
+          <div class="flex items-center justify-between">
+            <div class="font-medium text-[13px]">${r.title}</div>
+            <div class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">score ${r.score}</div>
+          </div>
+          <div class="mt-1 text-[11px] text-zinc-600">${r.summary || ''}</div>
+          <div class="mt-2 flex items-center gap-2 text-[10px] font-mono text-zinc-500">
+            <span>${r.nodeId}</span>
+            <span>•</span>
+            <span>${r.path ? r.path.join(' > ').slice(0,60) : ''}</span>
+            <span class="ml-auto px-1.5 py-0.5 rounded bg-zinc-900 text-white">${r.goldPointer ? r.goldPointer.start+':'+r.goldPointer.end : ''}</span>
+          </div>
+        </div>
+      `).join('')}
+    `;
+  } catch (e) {
+    alert('Query failed: '+e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Query';
+  }
+}
+
+document.getElementById('indexBtn').addEventListener('click', buildIndex);
+document.getElementById('indexUrlBtn').addEventListener('click', buildIndexFromUrl);
+document.getElementById('queryBtn').addEventListener('click', queryIndex);
+document.getElementById('queryInput').addEventListener('keydown', e=>{ if(e.key==='Enter') queryIndex(); });
+document.getElementById('urlInput').addEventListener('keydown', e=>{ if(e.key==='Enter') buildIndexFromUrl(); });
+
+// Load default sample on start
+loadSample('legal');
+</script>
+</body>
+</html>
