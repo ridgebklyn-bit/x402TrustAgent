@@ -1,4 +1,4 @@
-# Gold Source Indexing — gold-index-v2
+# Gold Source Indexing — gold-index-v2.1
 
 Shared engine for AgentX402Pay (`POST /api/gold-index`) and the X402 Trust Agent (`/api/index`, `/api/index-url`, `/api/bulk-index`, `/api/query`, `/api/gold`). The trust agent also returns `source.canonicalText` for uploaded files, since the caller cannot reproduce the PDF/DOCX extraction, and `/api/gold` now recomputes both digests instead of reporting a fixed `hashMatches: true`.
 
@@ -51,6 +51,19 @@ Additive:
 - Entities: absolute `start`/`end` spans (block-relative `index` kept).
 
 `excerpt` remains a preview (first 300 characters of a block, 200 of a heading). Check `excerptTruncated` before treating it as the whole passage.
+
+## Headings (v2.1)
+
+A line becomes a SECTION when it matches one of these, checked in order:
+
+- Markdown: `#` to `######` (level = number of `#`).
+- `ARTICLE`, `SECTION`, `CHAPTER` or `PART` followed by a number or Roman numeral (level 1).
+- Numbered: `1 Scope`, `1. Scope`, `1.Scope`, `2.3 Fees`, `2.3. Fees` (level = number of numeric parts, at most 4). The title must read like a heading: at most 80 characters and 10 words, no comma or semicolon, and not ending in `.`, `!` or `?`. Long numbered sentences such as definitions and list items stay body text.
+- Common section names alone on a line: Abstract, Introduction, Background, Overview, Summary, Scope, Definitions, Conclusion(s), References, Bibliography, Acknowledg(e)ments, Appendix (level 1).
+- All-caps lines of six or more letters (level 2).
+- Lettered items such as `a) ...` (level 4).
+
+v2.1 adds the numbered-without-space form, the title check and the named sections; v2 missed the headings of most papers and RFCs, so their whole text came back as one block. Spans, hashes and the response shape are unchanged; the same input can now produce more, smaller nodes, so `indexVersion` changed.
 
 ## URL fetching (`lib/safeFetch.js`)
 

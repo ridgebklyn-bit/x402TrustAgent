@@ -146,3 +146,56 @@ test('cross-references and query paths carry exact spans', async () => {
   assert.equal(hits[0].path[0], 'x.txt');
   assert.ok(!JSON.stringify(r.log).includes('Section 4.2'), 'reference text leaked into the log');
 });
+
+// Heading styles seen in real extracted text (gold-index-v2.1).
+test('numbered headings with or without a space after the dot become sections', async () => {
+  const doc = [
+    'A Short Paper Title',
+    'Author Name',
+    '',
+    'Abstract. One sentence of abstract text that runs on for a while.',
+    '1.Introduction',
+    'Commerce relies on trusted third parties to process payments.',
+    '1',
+    '2.Transactions',
+    'We define a coin as a chain of signatures.',
+    'Block',
+    'Hash',
+    '2.1 Ownership',
+    'Each owner transfers the coin by signing a hash.',
+    '3. Timestamp Server',
+    'The server takes a hash of a block of items.',
+    'References',
+    '[1] An earlier paper, 1998.',
+  ].join('\n');
+  const r = await buildGoldIndex(doc, 'paper.txt');
+  assertSpansRoundTrip(doc, r);
+  const sections = allNodes(r.tree).filter((n) => n.type === 'SECTION').map((n) => [n.title, n.sectionPath.join(' > ')]);
+  assert.deepEqual(sections, [
+    ['1.Introduction', '1.Introduction'],
+    ['2.Transactions', '2.Transactions'],
+    ['2.1 Ownership', '2.Transactions > 2.1 Ownership'],
+    ['3. Timestamp Server', '3. Timestamp Server'],
+    ['References', 'References'],
+  ]);
+  // Page numbers and figure labels stay in the body text.
+  const intro = allNodes(r.tree).find((n) => n.title === 'Under: 1.Introduction');
+  assert.ok(doc.slice(intro.goldPointer.start, intro.goldPointer.end).endsWith('\n1'));
+});
+
+test('long numbered sentences are body text, not headings', async () => {
+  const doc = [
+    '6. Guidance in the use of these Imperatives',
+    'Imperatives must be used with care.',
+    '1. MUST This word, or the terms "REQUIRED" or "SHALL", mean that the',
+    ' definition is an absolute requirement of the specification.',
+    '2. Late payments accrue interest at the rate set out in this agreement each month.',
+    '3. Payment is due on receipt.',
+    '1350 Mass. Ave.',
+  ].join('\n');
+  const r = await buildGoldIndex(doc, 'rfc.txt');
+  assertSpansRoundTrip(doc, r);
+  const sections = allNodes(r.tree).filter((n) => n.type === 'SECTION').map((n) => n.title);
+  assert.deepEqual(sections, ['6. Guidance in the use of these Imperatives']);
+  assert.equal(r.goldMeta.indexVersion, 'gold-index-v2.1');
+});
