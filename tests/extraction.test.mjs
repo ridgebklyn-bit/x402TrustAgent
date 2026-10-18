@@ -115,12 +115,23 @@ test('PDF: corrupt bytes fail with a clean error', async () => {
 });
 
 test('PDF: the real parser is stopped at the time limit', async () => {
-  // A large many-page PDF with a near-zero time limit: the worker must be
-  // terminated and the call must reject promptly.
   const pdf = fixturePdf('many-pages.pdf');
   const requestImpl = transport({ '/big.pdf': { headers: { 'content-type': 'application/pdf' }, body: pdf } });
+
+  // Control: with a generous limit the same file parses, so a later failure
+  // is the time limit and not a broken file.
+  const c0 = Date.now();
+  const full = await extractTextFromUrl('https://files.example/big.pdf', { resolver, requestImpl }, { timeoutMs: 60000, maxPages: 400 });
+  const fullMs = Date.now() - c0;
+  assert.equal(full.meta.pdfPages, 400);
+  assert.ok(full.text.includes('Page 400 text'));
+
+  // Now a limit well under the measured parse time: the worker is terminated
+  // mid-parse and the call rejects promptly.
+  const limit = Math.max(50, Math.floor(fullMs / 4));
+  assert.ok(fullMs > limit * 2, `parse too fast to test (${fullMs} ms)`);
   const t0 = Date.now();
-  await assert.rejects(extractTextFromUrl('https://files.example/big.pdf', { resolver, requestImpl }, { timeoutMs: 1, maxPages: 400 }),
+  await assert.rejects(extractTextFromUrl('https://files.example/big.pdf', { resolver, requestImpl }, { timeoutMs: limit, maxPages: 400 }),
     (e) => e.code === 'pdf_timeout' && e.status === 504);
-  assert.ok(Date.now() - t0 < 3000);
+  assert.ok(Date.now() - t0 < limit + 1000, 'did not stop promptly');
 });
