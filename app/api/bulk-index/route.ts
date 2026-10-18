@@ -22,8 +22,11 @@ const handler = async (request: NextRequest): Promise<NextResponse> => {
 
   const results = [];
   for (const doc of documents) {
-    if (!doc.text || doc.text.length < 50) {
+    if (typeof doc.text !== "string" || doc.text.length < 50) {
       throw new RouteError(`Document "${doc.filename || "unnamed"}" is too short (minimum 50 characters)`, 400);
+    }
+    if (doc.text.length > 1_000_000) {
+      throw new RouteError(`Document "${doc.filename || "unnamed"}" is too long (limit 1000000 characters)`, 413);
     }
     const log = new IndexingLog();
     const result = await buildGoldIndex(doc.text, doc.filename || "document.txt", log);

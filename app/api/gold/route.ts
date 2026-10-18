@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createX402Route, RouteError, requireParam } from "../_lib/x402Route";
 import { indexStore } from "../_lib/indexStore";
+import { sha256Hex } from "../../../lib/goldIndexEngine.js";
 
 function findNode(node: any, targetId: string): any {
   if (node.id === targetId) return node;
@@ -11,7 +12,8 @@ function findNode(node: any, targetId: string): any {
   return null;
 }
 
-// Retrieve a verified, byte-for-byte excerpt from the immutable gold source.
+// Retrieve the exact text of one node from the stored canonical text and
+// re-check it against the node's SHA-256 digest and the document digest.
 // Uses query params (?id=...&nodeId=...) rather than a dynamic path segment
 // so it reuses the same createX402Route helper as every other route here.
 const handler = async (request: NextRequest): Promise<NextResponse> => {
@@ -28,18 +30,26 @@ const handler = async (request: NextRequest): Promise<NextResponse> => {
   }
 
   const goldText = data.rawText.slice(node.goldPointer.start, node.goldPointer.end);
+  const excerptHash = sha256Hex(goldText);
+  const documentHash = sha256Hex(data.rawText);
+  const hashMatches = excerptHash === node.goldPointer.fullTextHash && documentHash === data.goldMeta.hash;
 
   return NextResponse.json({
     nodeId: node.id,
     title: node.title,
+    sectionPath: node.sectionPath,
     goldPointer: node.goldPointer,
     goldSourceExcerpt: goldText,
     verification: {
-      hashMatches: true,
+      hashMatches,
+      hashAlgorithm: "sha256",
+      offsetUnit: "utf16-code-unit",
       charRange: [node.goldPointer.start, node.goldPointer.end],
-      excerptHash: node.goldPointer.fullTextHash,
-      goldDocumentHash: data.goldMeta.hash,
-      message: "This excerpt is byte-for-byte from the immutable gold source",
+      excerptHash,
+      goldDocumentHash: documentHash,
+      message: hashMatches
+        ? "The excerpt is the exact text at this span of the stored canonical text, and both digests match."
+        : "Digest mismatch: the stored text no longer matches the index.",
     },
   });
 };
@@ -48,7 +58,7 @@ export const GET = createX402Route({
   handler,
   resource: "/api/gold",
   description:
-    "Retrieve a verified, byte-for-byte excerpt from the immutable gold source document by index id and node id.",
+    "Retrieve the exact text of one index node from the stored canonical text, re-checked against its SHA-256 digest.",
   price: "$0.02",
   serviceName: "Gold Source Indexing Agent",
   tags: ["indexing", "verification", "legal", "compliance"],

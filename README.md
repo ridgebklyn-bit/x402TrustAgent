@@ -2,7 +2,7 @@
 
 Verifiable, hierarchical document indexing, monetized over real x402 payments on Base/Solana mainnet through Coinbase's CDP Facilitator.
 
-Turns a pasted document, an uploaded PDF/DOCX/TXT file, or a web page URL into a verifiable, hierarchical index. The original text is never rewritten - every index node carries a byte-offset "gold pointer" plus a hash back to the original, so excerpts can be verified byte-for-byte against the source.
+Turns a pasted document, an uploaded PDF/DOCX/TXT file, or a web page URL into a verifiable, hierarchical index. The original text is never rewritten - every index node carries a "gold pointer": an exact [start, end) span in UTF-16 code units into the canonical text, plus a SHA-256 digest of that span (see docs/GOLD_INDEX.md).
 
 Separated out of the AgentX402Pay project into its own repo/deployment/domain for a dedicated trust-focused brand (legal, financial, and compliance buyers), while still riding the same real x402 payment rail.
 
