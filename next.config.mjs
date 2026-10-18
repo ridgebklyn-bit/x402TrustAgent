@@ -4,7 +4,7 @@ const nextConfig = {
   // so keep it out of the bundle and ship its files with the functions.
   serverExternalPackages: ["pdf-parse"],
   outputFileTracingIncludes: {
-    "/*": ["./node_modules/pdf-parse/**/*"],
+    "/*": ["./node_modules/pdf-parse/**/*", "./node_modules/node-ensure/**/*"],
   },
 };
 

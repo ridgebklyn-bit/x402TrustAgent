@@ -37,6 +37,6 @@ test('successful parse returns text and passes the page cap', async () => {
 test('missing parser module fails closed', async () => {
   await assert.rejects(
     extractPdfText(Buffer.from('%PDF'), { modulePath: '/nonexistent/parser.cjs' }),
-    (e) => e instanceof PdfExtractError && e.code === 'pdf_parse_failed',
+    (e) => e instanceof PdfExtractError && e.code === 'pdf_unavailable' && e.status === 500,
   );
 });
