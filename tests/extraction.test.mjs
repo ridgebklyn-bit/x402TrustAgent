@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { PassThrough } from 'node:stream';
 import { EventEmitter } from 'node:events';
 import zlib from 'node:zlib';
+import fs from 'node:fs';
 import { extractTextFromUrl } from '../lib/urlTextExtractor.js';
 import { buildGoldIndex, sha256Hex } from '../lib/goldIndexEngine.js';
 
@@ -28,30 +29,10 @@ function transport(routes) {
   };
 }
 
-// Builds a valid multi-page PDF (one Helvetica text line per page) with a
-// correct xref table, so pdf-parse reads it without repair heuristics.
-function makePdf(pages) {
-  const objs = [];
-  const kids = pages.map((_, i) => `${3 + i * 2} 0 R`).join(' ');
-  objs.push('<< /Type /Catalog /Pages 2 0 R >>');
-  objs.push(`<< /Type /Pages /Kids [${kids}] /Count ${pages.length} >>`);
-  const fontObj = 3 + pages.length * 2;
-  pages.forEach((line, i) => {
-    const contentObj = 4 + i * 2;
-    objs.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${fontObj} 0 R >> >> /Contents ${contentObj} 0 R >>`);
-    const stream = `BT /F1 18 Tf 72 720 Td (${line}) Tj ET`;
-    objs.push(`<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`);
-  });
-  objs.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
-  let out = '%PDF-1.4\n';
-  const offsets = [];
-  objs.forEach((o, i) => { offsets.push(Buffer.byteLength(out)); out += `${i + 1} 0 obj\n${o}\nendobj\n`; });
-  const xref = Buffer.byteLength(out);
-  out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n`;
-  for (const off of offsets) out += `${String(off).padStart(10, '0')} 00000 n \n`;
-  out += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
-  return Buffer.from(out, 'latin1');
-}
+// Fixture PDFs generated with pdf-lib (Helvetica, one text line per page):
+// three-pages.pdf = "ARTICLE 1 - SCOPE", "ARTICLE 2 - PAYMENT", "ARTICLE 3 - TERM";
+// many-pages.pdf = 400 pages, "Page N text".
+const fixturePdf = (name) => fs.readFileSync(new URL(`./fixtures/${name}`, import.meta.url));
 
 const ARTICLE_HTML = `<!doctype html><html><head><title>t</title><style>.x{}</style><script>var secret=1</script></head>
 <body><nav>Home | About</nav><header>Site header</header>
@@ -111,7 +92,7 @@ test('text/plain is returned unchanged', async () => {
 });
 
 test('PDF: real pdf-parse extracts text in a worker and honours the page cap', async () => {
-  const pdf = makePdf(['ARTICLE 1 - SCOPE', 'ARTICLE 2 - PAYMENT', 'ARTICLE 3 - TERM']);
+  const pdf = fixturePdf('three-pages.pdf');
   const requestImpl = transport({ '/a.pdf': { headers: { 'content-type': 'application/pdf' }, body: pdf } });
   const all = await extractTextFromUrl('https://files.example/a.pdf', { resolver, requestImpl });
   assert.equal(all.meta.source, 'pdf');
@@ -136,7 +117,7 @@ test('PDF: corrupt bytes fail with a clean error', async () => {
 test('PDF: the real parser is stopped at the time limit', async () => {
   // A large many-page PDF with a near-zero time limit: the worker must be
   // terminated and the call must reject promptly.
-  const pdf = makePdf(Array.from({ length: 400 }, (_, i) => `Page ${i + 1} text`));
+  const pdf = fixturePdf('many-pages.pdf');
   const requestImpl = transport({ '/big.pdf': { headers: { 'content-type': 'application/pdf' }, body: pdf } });
   const t0 = Date.now();
   await assert.rejects(extractTextFromUrl('https://files.example/big.pdf', { resolver, requestImpl }, { timeoutMs: 1, maxPages: 400 }),
